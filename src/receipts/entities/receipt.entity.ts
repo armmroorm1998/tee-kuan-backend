@@ -21,7 +21,9 @@ export class Receipt {
   @Column({ type: 'uuid' })
   player_id: string;
 
-  @ManyToOne(() => Session, (session) => session.receipts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Session, (session) => session.receipts, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'session_id' })
   session: Session;
 

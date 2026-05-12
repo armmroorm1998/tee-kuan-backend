@@ -37,9 +37,11 @@ export class OwnersService {
     return key;
   }
 
-  async bootstrap(
-    dto: BootstrapOwnerDto,
-  ): Promise<{ owner: Partial<Owner>; raw_token: string; recovery_key: string }> {
+  async bootstrap(dto: BootstrapOwnerDto): Promise<{
+    owner: Partial<Owner>;
+    raw_token: string;
+    recovery_key: string;
+  }> {
     const rawToken = this.generateToken();
     const recoveryKey = this.generateRecoveryKey();
 
@@ -55,7 +57,11 @@ export class OwnersService {
     const saved = await this.ownerRepository.save(owner);
 
     return {
-      owner: { id: saved.id, display_name: saved.display_name, created_at: saved.created_at },
+      owner: {
+        id: saved.id,
+        display_name: saved.display_name,
+        created_at: saved.created_at,
+      },
       raw_token: rawToken,
       recovery_key: recoveryKey,
     };
@@ -104,8 +110,10 @@ export class OwnersService {
     const owner = await this.findById(id);
 
     if (dto.display_name !== undefined) owner.display_name = dto.display_name;
-    if (dto.promptpay_type !== undefined) owner.promptpay_type = dto.promptpay_type;
-    if (dto.promptpay_value !== undefined) owner.promptpay_value = dto.promptpay_value;
+    if (dto.promptpay_type !== undefined)
+      owner.promptpay_type = dto.promptpay_type;
+    if (dto.promptpay_value !== undefined)
+      owner.promptpay_value = dto.promptpay_value;
 
     const saved = await this.ownerRepository.save(owner);
     // Never return sensitive hashes to the client

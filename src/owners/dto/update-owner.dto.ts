@@ -25,7 +25,8 @@ export class UpdateOwnerDto {
   @IsOptional()
   @IsString()
   @Matches(/^(0\d{9}|\d{13})$/, {
-    message: 'promptpay_value must be a 10-digit mobile or 13-digit national ID',
+    message:
+      'promptpay_value must be a 10-digit mobile or 13-digit national ID',
   })
   promptpay_value?: string;
 }

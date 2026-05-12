@@ -33,7 +33,10 @@ export class OwnersController {
   /** Create a new anonymous owner identity. Returns recovery key ONCE. */
   @Post('bootstrap')
   @HttpCode(HttpStatus.CREATED)
-  async bootstrap(@Body() dto: BootstrapOwnerDto, @Res({ passthrough: true }) res: Response) {
+  async bootstrap(
+    @Body() dto: BootstrapOwnerDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const result = await this.ownersService.bootstrap(dto);
     res.cookie(COOKIE_NAME, result.raw_token, COOKIE_OPTIONS);
     return {
@@ -45,7 +48,10 @@ export class OwnersController {
   /** Recover identity using recovery key, issues a new cookie */
   @Post('recover')
   @HttpCode(HttpStatus.OK)
-  async recover(@Body() dto: RecoverOwnerDto, @Res({ passthrough: true }) res: Response) {
+  async recover(
+    @Body() dto: RecoverOwnerDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const result = await this.ownersService.recover(dto);
     res.cookie(COOKIE_NAME, result.raw_token, COOKIE_OPTIONS);
     return { owner: result.owner };
@@ -54,7 +60,12 @@ export class OwnersController {
   @Get('me')
   @UseGuards(OwnerGuard)
   getMe(@CurrentOwner() owner: Owner) {
-    const { token_hash: _t, recovery_key_hash: _r, promptpay_value: _p, ...safe } = owner as any;
+    const {
+      token_hash: _t,
+      recovery_key_hash: _r,
+      promptpay_value: _p,
+      ...safe
+    } = owner as any;
     return safe;
   }
 

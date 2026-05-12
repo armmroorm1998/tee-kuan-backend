@@ -9,7 +9,10 @@ import { Owner } from '../owners/entities/owner.entity';
 import { OwnersModule } from '../owners/owners.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Receipt, Session, SessionPlayer, Owner]), OwnersModule],
+  imports: [
+    TypeOrmModule.forFeature([Receipt, Session, SessionPlayer, Owner]),
+    OwnersModule,
+  ],
   controllers: [ReceiptsController],
   providers: [ReceiptsService],
 })

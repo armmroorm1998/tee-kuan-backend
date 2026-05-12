@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { PlayersService } from './players.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { OwnerGuard } from '../common/guards/owner.guard';
@@ -25,7 +33,10 @@ export class PlayersController {
   }
 
   @Delete(':playerId')
-  deactivate(@Param('playerId') playerId: string, @CurrentOwner() owner: Owner) {
+  deactivate(
+    @Param('playerId') playerId: string,
+    @CurrentOwner() owner: Owner,
+  ) {
     return this.playersService.deactivate(playerId, owner.id);
   }
 }

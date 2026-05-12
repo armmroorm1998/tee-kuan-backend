@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Squad } from './entities/squad.entity';
@@ -18,7 +22,8 @@ export class SquadsService {
       owner_id: ownerId,
       name: dto.name,
       default_billing_mode: dto.default_billing_mode ?? BillingMode.EQUAL_SPLIT,
-      default_court_split_mode: dto.default_court_split_mode ?? CourtSplitMode.EQUAL,
+      default_court_split_mode:
+        dto.default_court_split_mode ?? CourtSplitMode.EQUAL,
     });
     return this.squadRepository.save(squad);
   }

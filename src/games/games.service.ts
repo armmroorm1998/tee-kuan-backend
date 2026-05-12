@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
@@ -17,7 +21,10 @@ export class GamesService {
     private readonly sessionRepository: Repository<Session>,
   ) {}
 
-  private async assertSessionOwner(sessionId: string, ownerId: string): Promise<Session> {
+  private async assertSessionOwner(
+    sessionId: string,
+    ownerId: string,
+  ): Promise<Session> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['squad'],
@@ -27,10 +34,16 @@ export class GamesService {
     return session;
   }
 
-  async create(sessionId: string, ownerId: string, dto: CreateGameDto): Promise<Game> {
+  async create(
+    sessionId: string,
+    ownerId: string,
+    dto: CreateGameDto,
+  ): Promise<Game> {
     await this.assertSessionOwner(sessionId, ownerId);
 
-    const gameCount = await this.gameRepository.count({ where: { session_id: sessionId } });
+    const gameCount = await this.gameRepository.count({
+      where: { session_id: sessionId },
+    });
 
     const game = this.gameRepository.create({
       session_id: sessionId,

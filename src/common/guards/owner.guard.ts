@@ -25,7 +25,9 @@ export class OwnerGuard implements CanActivate {
     }
 
     // Find all owners and compare token hash (token is short-lived, stored hashed)
-    const owners = await this.ownerRepository.find({ select: ['id', 'token_hash'] });
+    const owners = await this.ownerRepository.find({
+      select: ['id', 'token_hash'],
+    });
     let matchedOwner: Owner | null = null;
 
     for (const owner of owners) {
@@ -41,7 +43,9 @@ export class OwnerGuard implements CanActivate {
     }
 
     // Attach full owner to request
-    const fullOwner = await this.ownerRepository.findOneByOrFail({ id: matchedOwner.id });
+    const fullOwner = await this.ownerRepository.findOneByOrFail({
+      id: matchedOwner.id,
+    });
     request.owner = fullOwner;
     return true;
   }

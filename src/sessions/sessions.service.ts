@@ -33,14 +33,20 @@ export class SessionsService {
     private readonly gamePlayerRepository: Repository<GamePlayer>,
   ) {}
 
-  private async assertSquadOwner(squadId: string, ownerId: string): Promise<Squad> {
+  private async assertSquadOwner(
+    squadId: string,
+    ownerId: string,
+  ): Promise<Squad> {
     const squad = await this.squadRepository.findOneBy({ id: squadId });
     if (!squad) throw new NotFoundException('Squad not found');
     if (squad.owner_id !== ownerId) throw new ForbiddenException();
     return squad;
   }
 
-  private async assertSessionOwner(sessionId: string, ownerId: string): Promise<Session> {
+  private async assertSessionOwner(
+    sessionId: string,
+    ownerId: string,
+  ): Promise<Session> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['squad'],
@@ -50,7 +56,11 @@ export class SessionsService {
     return session;
   }
 
-  async create(squadId: string, ownerId: string, dto: CreateSessionDto): Promise<Session> {
+  async create(
+    squadId: string,
+    ownerId: string,
+    dto: CreateSessionDto,
+  ): Promise<Session> {
     await this.assertSquadOwner(squadId, ownerId);
 
     const session = this.sessionRepository.create({
@@ -76,7 +86,10 @@ export class SessionsService {
         dto.player_ids.map((id) => ({ id, squad_id: squadId })),
       );
       const sessionPlayers = players.map((p) =>
-        this.sessionPlayerRepository.create({ session_id: saved.id, player_id: p.id }),
+        this.sessionPlayerRepository.create({
+          session_id: saved.id,
+          player_id: p.id,
+        }),
       );
       await this.sessionPlayerRepository.save(sessionPlayers);
     }
@@ -93,21 +106,61 @@ export class SessionsService {
   }
 
   async findOne(sessionId: string, ownerId: string): Promise<Session> {
-    const session = await this.assertSessionOwner(sessionId, ownerId);
+    await this.assertSessionOwner(sessionId, ownerId);
     return this.sessionRepository.findOne({
       where: { id: sessionId },
-      relations: ['session_players', 'session_players.player', 'games', 'games.game_players'],
+      relations: [
+        'session_players',
+        'session_players.player',
+        'games',
+        'games.game_players',
+      ],
     }) as Promise<Session>;
   }
 
-  async close(sessionId: string, ownerId: string, dto: CloseSessionDto): Promise<Session> {
+  async addPlayer(
+    sessionId: string,
+    ownerId: string,
+    playerId: string,
+  ): Promise<SessionPlayer> {
+    const session = await this.assertSessionOwner(sessionId, ownerId);
+
+    if (session.status === SessionStatus.CLOSED) {
+      throw new BadRequestException('Cannot add player to a closed session');
+    }
+
+    const player = await this.playerRepository.findOneBy({ id: playerId });
+    if (!player) throw new NotFoundException('Player not found');
+    if (player.squad_id !== session.squad_id)
+      throw new ForbiddenException('Player does not belong to this squad');
+
+    const existing = await this.sessionPlayerRepository.findOneBy({
+      session_id: sessionId,
+      player_id: playerId,
+    });
+    if (existing)
+      throw new BadRequestException('Player is already in this session');
+
+    const sp = this.sessionPlayerRepository.create({
+      session_id: sessionId,
+      player_id: playerId,
+    });
+    return this.sessionPlayerRepository.save(sp);
+  }
+
+  async close(
+    sessionId: string,
+    ownerId: string,
+    dto: CloseSessionDto,
+  ): Promise<Session> {
     const session = await this.assertSessionOwner(sessionId, ownerId);
 
     if (session.status === SessionStatus.CLOSED) {
       throw new BadRequestException('Session is already closed');
     }
 
-    if (dto.shuttles_used !== undefined) session.shuttles_used = dto.shuttles_used;
+    if (dto.shuttles_used !== undefined)
+      session.shuttles_used = dto.shuttles_used;
     if (dto.court_total !== undefined) session.court_total = dto.court_total;
     if (dto.extra_total !== undefined) session.extra_total = dto.extra_total;
     session.status = SessionStatus.CLOSED;
@@ -126,7 +179,8 @@ export class SessionsService {
     }
 
     const shuttleTotal = shuttleCostPerUnit * session.shuttles_used;
-    const totalCost = Number(session.court_total) + shuttleTotal + Number(session.extra_total);
+    const totalCost =
+      Number(session.court_total) + shuttleTotal + Number(session.extra_total);
 
     // Load session players
     const sessionPlayers = await this.sessionPlayerRepository.find({
@@ -157,7 +211,10 @@ export class SessionsService {
         unitMap.set(gp.player_id, (unitMap.get(gp.player_id) ?? 0) + 1);
       }
 
-      const totalUnits = Array.from(unitMap.values()).reduce((a, b) => a + b, 0);
+      const totalUnits = Array.from(unitMap.values()).reduce(
+        (a, b) => a + b,
+        0,
+      );
 
       // Court split mode
       const courtPerUnit =
@@ -171,7 +228,9 @@ export class SessionsService {
           : 0;
 
       const shuttleAndExtraPerUnit =
-        totalUnits > 0 ? (shuttleTotal + Number(session.extra_total)) / totalUnits : 0;
+        totalUnits > 0
+          ? (shuttleTotal + Number(session.extra_total)) / totalUnits
+          : 0;
 
       for (const sp of sessionPlayers) {
         const units = unitMap.get(sp.player_id) ?? 0;

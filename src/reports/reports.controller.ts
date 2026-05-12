@@ -1,4 +1,10 @@
-import { Controller, Get, Query, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { OwnerGuard } from '../common/guards/owner.guard';
 import { CurrentOwner } from '../common/decorators/current-owner.decorator';

@@ -1,13 +1,24 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as QRCode from 'qrcode';
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const generatePayload: (
+  target: string,
+  opts: { amount: number },
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+) => string = require('promptpay-qr');
 import { Receipt } from './entities/receipt.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionPlayer } from '../sessions/entities/session-player.entity';
 import { Owner } from '../owners/entities/owner.entity';
 import { SessionStatus } from '../common/enums/session-status.enum';
 import { PromptPayType } from '../common/enums/promptpay-type.enum';
+import { PaymentStatus } from '../common/enums/payment-status.enum';
 
 @Injectable()
 export class ReceiptsService {
@@ -23,50 +34,30 @@ export class ReceiptsService {
   ) {}
 
   /**
-   * Build EMVCo PromptPay payload with amount.
-   * Format: Thai PromptPay standard (based on BOT spec)
+   * Build EMVCo PromptPay payload using promptpay-qr package.
    */
-  private buildPromptPayPayload(promptpayValue: string, promptpayType: PromptPayType, amount: number): string {
-    const sanitized = promptpayValue.replace(/-/g, '');
-
-    let id: string;
-    if (promptpayType === PromptPayType.MOBILE) {
-      // Convert 0XXXXXXXXX to 66XXXXXXXXX
-      id = '0066' + sanitized.substring(1);
-    } else {
-      id = sanitized;
-    }
-
-    const guidTag = promptpayType === PromptPayType.MOBILE ? '01' : '02';
-    const merchantAcct = `0016A000000677010111${guidTag}${String(id.length).padStart(2, '0')}${id}`;
-    const amountStr = amount.toFixed(2);
-
-    const payload =
-      '000201' +
-      '010212' +
-      `2${String(merchantAcct.length + 2).padStart(2, '0')}${merchantAcct}` +
-      '5303764' +
-      `54${String(amountStr.length).padStart(2, '0')}${amountStr}` +
-      '5802TH' +
-      '6304';
-
-    const crc = this.crc16(payload);
-    return payload + crc.toString(16).toUpperCase().padStart(4, '0');
+  private buildPromptPayPayload(
+    promptpayValue: string,
+    promptpayType: PromptPayType,
+    amount: number,
+  ): string {
+    const sanitized = promptpayValue.replace(/-/g, '').trim();
+    console.log(
+      '[PromptPay] type:',
+      promptpayType,
+      '| value:',
+      sanitized,
+      '| amount:',
+      amount,
+    );
+    // generatePayload accepts mobile (0XXXXXXXXX) or national ID (13 digits)
+    return generatePayload(sanitized, { amount });
   }
 
-  /** CRC-16/CCITT-FALSE as required by EMVCo */
-  private crc16(data: string): number {
-    let crc = 0xffff;
-    for (let i = 0; i < data.length; i++) {
-      crc ^= data.charCodeAt(i) << 8;
-      for (let j = 0; j < 8; j++) {
-        crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
-      }
-    }
-    return crc & 0xffff;
-  }
-
-  async generateForSession(sessionId: string, ownerId: string): Promise<Receipt[]> {
+  async generateForSession(
+    sessionId: string,
+    ownerId: string,
+  ): Promise<Receipt[]> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['squad'],
@@ -74,7 +65,9 @@ export class ReceiptsService {
     if (!session) throw new NotFoundException('Session not found');
     if (session.squad.owner_id !== ownerId) throw new ForbiddenException();
     if (session.status !== SessionStatus.CLOSED) {
-      throw new ForbiddenException('Session must be closed before generating receipts');
+      throw new ForbiddenException(
+        'Session must be closed before generating receipts',
+      );
     }
 
     const owner = await this.ownerRepository.findOneBy({ id: ownerId });
@@ -101,7 +94,10 @@ export class ReceiptsService {
           owner.promptpay_type,
           amountDue,
         );
-        qrBase64 = await QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', width: 300 });
+        qrBase64 = await QRCode.toDataURL(payload, {
+          errorCorrectionLevel: 'M',
+          width: 300,
+        });
       }
 
       const receipt = this.receiptRepository.create({
@@ -117,6 +113,24 @@ export class ReceiptsService {
     }
 
     return receipts;
+  }
+
+  async markPaid(
+    receiptId: string,
+    status: PaymentStatus,
+    ownerId: string,
+  ): Promise<Receipt> {
+    const receipt = await this.receiptRepository.findOne({
+      where: { id: receiptId },
+      relations: ['session', 'session.squad'],
+    });
+    if (!receipt) throw new NotFoundException('Receipt not found');
+    if (receipt.session.squad.owner_id !== ownerId) {
+      throw new ForbiddenException();
+    }
+
+    receipt.payment_status = status;
+    return this.receiptRepository.save(receipt);
   }
 
   async findBySession(sessionId: string, ownerId: string): Promise<Receipt[]> {

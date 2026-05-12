@@ -36,7 +36,12 @@ export class ReportsService {
   }> {
     const squads = await this.squadRepository.findBy({ owner_id: ownerId });
     if (!squads.length) {
-      return { month: `${year}-${String(month).padStart(2, '0')}`, total_sessions: 0, total_cost: 0, sessions: [] };
+      return {
+        month: `${year}-${String(month).padStart(2, '0')}`,
+        total_sessions: 0,
+        total_cost: 0,
+        sessions: [],
+      };
     }
 
     const squadIds = squads.map((s) => s.id);
@@ -48,7 +53,10 @@ export class ReportsService {
       .leftJoinAndSelect('s.session_players', 'sp')
       .where('s.squad_id IN (:...squadIds)', { squadIds })
       .andWhere('s.status = :status', { status: SessionStatus.CLOSED })
-      .andWhere('s.ended_at BETWEEN :start AND :end', { start: startDate, end: endDate })
+      .andWhere('s.ended_at BETWEEN :start AND :end', {
+        start: startDate,
+        end: endDate,
+      })
       .orderBy('s.ended_at', 'ASC')
       .getMany();
 
@@ -58,10 +66,15 @@ export class ReportsService {
       let shuttleTotal = 0;
       // Re-calculate shuttle total from stored data
       if (session.shuttle_pricing_mode === 'per_shuttle') {
-        shuttleTotal = Number(session.shuttle_price_per_item ?? 0) * session.shuttles_used;
-      } else if (session.shuttle_pricing_mode === 'per_tube' && session.shuttles_per_tube) {
         shuttleTotal =
-          (Number(session.shuttle_price_per_tube ?? 0) / session.shuttles_per_tube) *
+          Number(session.shuttle_price_per_item ?? 0) * session.shuttles_used;
+      } else if (
+        session.shuttle_pricing_mode === 'per_tube' &&
+        session.shuttles_per_tube
+      ) {
+        shuttleTotal =
+          (Number(session.shuttle_price_per_tube ?? 0) /
+            session.shuttles_per_tube) *
           session.shuttles_used;
       }
 

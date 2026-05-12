@@ -20,11 +20,15 @@ export class SessionPlayer {
   @Column({ type: 'uuid' })
   player_id: string;
 
-  @ManyToOne(() => Session, (session) => session.session_players, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Session, (session) => session.session_players, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'session_id' })
   session: Session;
 
-  @ManyToOne(() => Player, (player) => player.session_players, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Player, (player) => player.session_players, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'player_id' })
   player: Player;
 

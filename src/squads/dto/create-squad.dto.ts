@@ -1,9 +1,4 @@
-import {
-  IsEnum,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { BillingMode } from '../../common/enums/billing-mode.enum';
 import { CourtSplitMode } from '../../common/enums/court-split-mode.enum';
 

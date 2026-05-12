@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Player } from './entities/player.entity';
@@ -14,14 +18,21 @@ export class PlayersService {
     private readonly squadRepository: Repository<Squad>,
   ) {}
 
-  private async assertSquadOwner(squadId: string, ownerId: string): Promise<Squad> {
+  private async assertSquadOwner(
+    squadId: string,
+    ownerId: string,
+  ): Promise<Squad> {
     const squad = await this.squadRepository.findOneBy({ id: squadId });
     if (!squad) throw new NotFoundException('Squad not found');
     if (squad.owner_id !== ownerId) throw new ForbiddenException();
     return squad;
   }
 
-  async create(squadId: string, ownerId: string, dto: CreatePlayerDto): Promise<Player> {
+  async create(
+    squadId: string,
+    ownerId: string,
+    dto: CreatePlayerDto,
+  ): Promise<Player> {
     await this.assertSquadOwner(squadId, ownerId);
     const player = this.playerRepository.create({
       squad_id: squadId,

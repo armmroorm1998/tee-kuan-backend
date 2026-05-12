@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SessionsController } from './sessions.controller';
+import { SessionPlayersController } from './session-players.controller';
 import { SessionsService } from './sessions.service';
 import { Session } from './entities/session.entity';
 import { SessionPlayer } from './entities/session-player.entity';
@@ -10,8 +11,17 @@ import { GamePlayer } from '../games/entities/game-player.entity';
 import { OwnersModule } from '../owners/owners.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Session, SessionPlayer, Squad, Player, GamePlayer]), OwnersModule],
-  controllers: [SessionsController],
+  imports: [
+    TypeOrmModule.forFeature([
+      Session,
+      SessionPlayer,
+      Squad,
+      Player,
+      GamePlayer,
+    ]),
+    OwnersModule,
+  ],
+  controllers: [SessionsController, SessionPlayersController],
   providers: [SessionsService],
   exports: [TypeOrmModule, SessionsService],
 })

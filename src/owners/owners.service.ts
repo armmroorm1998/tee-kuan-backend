@@ -117,7 +117,7 @@ export class OwnersService {
 
     const saved = await this.ownerRepository.save(owner);
     // Never return sensitive hashes to the client
-    const { token_hash: _t, recovery_key_hash: _r, ...safe } = saved as any;
+    const { token_hash: _t, recovery_key_hash: _r, ...safe } = saved;
     return safe;
   }
 }

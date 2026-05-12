@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionPlayer } from '../sessions/entities/session-player.entity';
 import { Squad } from '../squads/entities/squad.entity';
 import { SessionStatus } from '../common/enums/session-status.enum';
+import { ShuttlePricingMode } from '../common/enums/shuttle-pricing-mode.enum';
 
 @Injectable()
 export class ReportsService {
@@ -65,11 +66,11 @@ export class ReportsService {
       const extraTotal = Number(session.extra_total);
       let shuttleTotal = 0;
       // Re-calculate shuttle total from stored data
-      if (session.shuttle_pricing_mode === 'per_shuttle') {
+      if (session.shuttle_pricing_mode === ShuttlePricingMode.PER_SHUTTLE) {
         shuttleTotal =
           Number(session.shuttle_price_per_item ?? 0) * session.shuttles_used;
       } else if (
-        session.shuttle_pricing_mode === 'per_tube' &&
+        session.shuttle_pricing_mode === ShuttlePricingMode.PER_TUBE &&
         session.shuttles_per_tube
       ) {
         shuttleTotal =

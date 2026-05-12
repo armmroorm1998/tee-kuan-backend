@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { ReceiptsService } from './receipts.service';
 import { OwnerGuard } from '../common/guards/owner.guard';
 import { CurrentOwner } from '../common/decorators/current-owner.decorator';
@@ -29,7 +37,11 @@ export class ReceiptsController {
     @Param('receiptId') receiptId: string,
     @CurrentOwner() owner: Owner,
   ) {
-    return this.receiptsService.markPaid(receiptId, PaymentStatus.PAID, owner.id);
+    return this.receiptsService.markPaid(
+      receiptId,
+      PaymentStatus.PAID,
+      owner.id,
+    );
   }
 
   @Patch(':receiptId/mark-pending')
@@ -37,6 +49,10 @@ export class ReceiptsController {
     @Param('receiptId') receiptId: string,
     @CurrentOwner() owner: Owner,
   ) {
-    return this.receiptsService.markPaid(receiptId, PaymentStatus.PENDING, owner.id);
+    return this.receiptsService.markPaid(
+      receiptId,
+      PaymentStatus.PENDING,
+      owner.id,
+    );
   }
 }

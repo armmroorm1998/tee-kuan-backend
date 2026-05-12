@@ -32,17 +32,26 @@ export class CreateSessionDto {
   @IsEnum(ShuttlePricingMode)
   shuttle_pricing_mode: ShuttlePricingMode;
 
-  @ValidateIf((o) => o.shuttle_pricing_mode === ShuttlePricingMode.PER_SHUTTLE)
+  @ValidateIf(
+    (o: CreateSessionDto) =>
+      o.shuttle_pricing_mode === ShuttlePricingMode.PER_SHUTTLE,
+  )
   @IsNumber()
   @IsPositive()
   shuttle_price_per_item?: number;
 
-  @ValidateIf((o) => o.shuttle_pricing_mode === ShuttlePricingMode.PER_TUBE)
+  @ValidateIf(
+    (o: CreateSessionDto) =>
+      o.shuttle_pricing_mode === ShuttlePricingMode.PER_TUBE,
+  )
   @IsNumber()
   @IsPositive()
   shuttle_price_per_tube?: number;
 
-  @ValidateIf((o) => o.shuttle_pricing_mode === ShuttlePricingMode.PER_TUBE)
+  @ValidateIf(
+    (o: CreateSessionDto) =>
+      o.shuttle_pricing_mode === ShuttlePricingMode.PER_TUBE,
+  )
   @IsNumber()
   @Min(1)
   shuttles_per_tube?: number;

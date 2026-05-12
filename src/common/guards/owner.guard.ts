@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type { Request } from 'express';
 import { Owner } from '../../owners/entities/owner.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -17,8 +18,12 @@ export class OwnerGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const rawToken: string | undefined = request.cookies?.['owner_token'];
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { owner: Owner }>();
+    const rawToken = (request.cookies as Record<string, string | undefined>)[
+      'owner_token'
+    ];
 
     if (!rawToken) {
       throw new UnauthorizedException('Owner token not found');

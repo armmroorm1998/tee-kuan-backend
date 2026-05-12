@@ -65,7 +65,7 @@ export class OwnersController {
       recovery_key_hash: _r,
       promptpay_value: _p,
       ...safe
-    } = owner as any;
+    } = owner;
     return safe;
   }
 

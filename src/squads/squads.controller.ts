@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { SquadsService } from './squads.service';
 import { CreateSquadDto } from './dto/create-squad.dto';
 import { OwnerGuard } from '../common/guards/owner.guard';
@@ -23,5 +23,10 @@ export class SquadsController {
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentOwner() owner: Owner) {
     return this.squadsService.findOne(id, owner.id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string, @CurrentOwner() owner: Owner) {
+    return this.squadsService.delete(id, owner.id);
   }
 }

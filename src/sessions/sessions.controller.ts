@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -45,5 +46,10 @@ export class SessionsController {
     @Body() dto: CloseSessionDto,
   ) {
     return this.sessionsService.close(sessionId, owner.id, dto);
+  }
+
+  @Delete(':sessionId')
+  remove(@Param('sessionId') sessionId: string, @CurrentOwner() owner: Owner) {
+    return this.sessionsService.delete(sessionId, owner.id);
   }
 }

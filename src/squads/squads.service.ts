@@ -44,4 +44,11 @@ export class SquadsService {
     if (squad.owner_id !== ownerId) throw new ForbiddenException();
     return squad;
   }
+
+  async delete(id: string, ownerId: string): Promise<void> {
+    const squad = await this.squadRepository.findOne({ where: { id } });
+    if (!squad) throw new NotFoundException('Squad not found');
+    if (squad.owner_id !== ownerId) throw new ForbiddenException();
+    await this.squadRepository.remove(squad);
+  }
 }

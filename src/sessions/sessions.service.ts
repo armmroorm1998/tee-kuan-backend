@@ -249,4 +249,9 @@ export class SessionsService {
     await this.sessionPlayerRepository.save(sessionPlayers);
     return this.sessionRepository.save(session);
   }
+
+  async delete(sessionId: string, ownerId: string): Promise<void> {
+    const session = await this.assertSessionOwner(sessionId, ownerId);
+    await this.sessionRepository.remove(session);
+  }
 }

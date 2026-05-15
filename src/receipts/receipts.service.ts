@@ -19,6 +19,7 @@ import { Owner } from '../owners/entities/owner.entity';
 import { SessionStatus } from '../common/enums/session-status.enum';
 import { PromptPayType } from '../common/enums/promptpay-type.enum';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
+import { EncryptionService } from '../common/services/encryption.service';
 
 @Injectable()
 export class ReceiptsService {
@@ -31,6 +32,7 @@ export class ReceiptsService {
     private readonly sessionPlayerRepository: Repository<SessionPlayer>,
     @InjectRepository(Owner)
     private readonly ownerRepository: Repository<Owner>,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   /**
@@ -89,8 +91,10 @@ export class ReceiptsService {
       let qrBase64: string | null = null;
 
       if (owner.promptpay_value && owner.promptpay_type && amountDue > 0) {
+        // Decrypt the encrypted PromptPay value before building the QR payload
+        const plainPromptPay = this.encryptionService.decrypt(owner.promptpay_value);
         payload = this.buildPromptPayPayload(
-          owner.promptpay_value,
+          plainPromptPay,
           owner.promptpay_type,
           amountDue,
         );

@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { EncryptionModule } from './common/encryption.module';
 import { OwnersModule } from './owners/owners.module';
 import { SquadsModule } from './squads/squads.module';
 import { PlayersModule } from './players/players.module';
@@ -14,6 +15,7 @@ import { ReportsModule } from './reports/reports.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    EncryptionModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

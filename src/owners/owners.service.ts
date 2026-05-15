@@ -11,6 +11,7 @@ import { Owner } from './entities/owner.entity';
 import { BootstrapOwnerDto } from './dto/bootstrap-owner.dto';
 import { RecoverOwnerDto } from './dto/recover-owner.dto';
 import { UpdateOwnerDto } from './dto/update-owner.dto';
+import { EncryptionService } from '../common/services/encryption.service';
 
 const SALT_ROUNDS = 12;
 const RECOVERY_KEY_LENGTH = 24;
@@ -20,6 +21,7 @@ export class OwnersService {
   constructor(
     @InjectRepository(Owner)
     private readonly ownerRepository: Repository<Owner>,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   private generateToken(): string {
@@ -112,12 +114,19 @@ export class OwnersService {
     if (dto.display_name !== undefined) owner.display_name = dto.display_name;
     if (dto.promptpay_type !== undefined)
       owner.promptpay_type = dto.promptpay_type;
-    if (dto.promptpay_value !== undefined)
-      owner.promptpay_value = dto.promptpay_value;
+    if (dto.promptpay_value !== undefined) {
+      // Encrypt PromptPay number at rest — never store plaintext
+      owner.promptpay_value = this.encryptionService.encrypt(dto.promptpay_value);
+    }
 
     const saved = await this.ownerRepository.save(owner);
-    // Never return sensitive hashes to the client
-    const { token_hash: _t, recovery_key_hash: _r, ...safe } = saved;
+    // Never return sensitive fields to the client
+    const {
+      token_hash: _t,
+      recovery_key_hash: _r,
+      promptpay_value: _pv,
+      ...safe
+    } = saved;
     return safe;
   }
 }

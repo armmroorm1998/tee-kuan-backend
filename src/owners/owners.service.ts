@@ -116,7 +116,9 @@ export class OwnersService {
       owner.promptpay_type = dto.promptpay_type;
     if (dto.promptpay_value !== undefined) {
       // Encrypt PromptPay number at rest — never store plaintext
-      owner.promptpay_value = this.encryptionService.encrypt(dto.promptpay_value);
+      owner.promptpay_value = this.encryptionService.encrypt(
+        dto.promptpay_value,
+      );
     }
 
     const saved = await this.ownerRepository.save(owner);

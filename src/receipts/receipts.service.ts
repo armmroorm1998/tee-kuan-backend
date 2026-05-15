@@ -92,7 +92,9 @@ export class ReceiptsService {
 
       if (owner.promptpay_value && owner.promptpay_type && amountDue > 0) {
         // Decrypt the encrypted PromptPay value before building the QR payload
-        const plainPromptPay = this.encryptionService.decrypt(owner.promptpay_value);
+        const plainPromptPay = this.encryptionService.decrypt(
+          owner.promptpay_value,
+        );
         payload = this.buildPromptPayPayload(
           plainPromptPay,
           owner.promptpay_type,

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -70,5 +71,38 @@ export class GamesService {
       relations: ['game_players', 'game_players.player'],
       order: { game_number: 'ASC' },
     });
+  }
+
+  async remove(
+    sessionId: string,
+    gameId: string,
+    ownerId: string,
+  ): Promise<void> {
+    const session = await this.assertSessionOwner(sessionId, ownerId);
+
+    if (session.status === 'closed') {
+      throw new BadRequestException(
+        'Cannot delete a game after session is closed',
+      );
+    }
+
+    const game = await this.gameRepository.findOne({
+      where: { id: gameId, session_id: sessionId },
+    });
+    if (!game) throw new NotFoundException('Game not found');
+
+    await this.gameRepository.remove(game);
+
+    // Re-number remaining games sequentially
+    const remaining = await this.gameRepository.find({
+      where: { session_id: sessionId },
+      order: { game_number: 'ASC' },
+    });
+    for (let i = 0; i < remaining.length; i++) {
+      remaining[i].game_number = i + 1;
+    }
+    if (remaining.length > 0) {
+      await this.gameRepository.save(remaining);
+    }
   }
 }

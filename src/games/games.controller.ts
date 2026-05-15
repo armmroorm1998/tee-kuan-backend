@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { GamesService } from './games.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { OwnerGuard } from '../common/guards/owner.guard';
@@ -22,5 +32,15 @@ export class GamesController {
   @Get()
   findAll(@Param('sessionId') sessionId: string, @CurrentOwner() owner: Owner) {
     return this.gamesService.findAllBySession(sessionId, owner.id);
+  }
+
+  @Delete(':gameId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(
+    @Param('sessionId') sessionId: string,
+    @Param('gameId') gameId: string,
+    @CurrentOwner() owner: Owner,
+  ) {
+    return this.gamesService.remove(sessionId, gameId, owner.id);
   }
 }
